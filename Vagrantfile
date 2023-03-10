@@ -51,6 +51,8 @@ Vagrant.configure("2") do |config|
 
           box.vm.network "private_network", ip: boxconfig[:ip_addr]
 
+          box.vm.synced_folder ".", "/vagrant", disabled: true
+
           box.vm.provider :virtualbox do |vb|
             	  vb.customize ["modifyvm", :id, "--memory", "1024"]
                   needsController = false
@@ -71,12 +73,12 @@ Vagrant.configure("2") do |config|
  	  box.vm.provision "shell", inline: <<-SHELL
 	      mkdir -p ~root/.ssh
               cp ~vagrant/.ssh/auth* ~root/.ssh
-	      dnf install -y mdadm smartmontools hdparm gdisk vim
-              sudo mdadm --zero-superblock --force /dev/sd{b,c,d,e,f}
+	      yum install -y mdadm smartmontools hdparm gdisk vim
+              mdadm --zero-superblock --force /dev/sd{b,c,d,e,f}
               mdadm --create --verbose /dev/md0 -l 10 -n 5 /dev/sd{b,c,d,e,f}
               mkdir /etc/mdadm
               echo "DEVICE partitions" > /etc/mdadm/mdadm.conf
-              mdadm —detail —scan —verbose | awk ‘/ARRAY/ {print}’ >> /etc/mdadm/mdadm.conf
+              mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' >> /etc/mdadm/mdadm.conf
               parted -s /dev/md0 mklabel gpt
               parted /dev/md0 mkpart primary ext4 0% 20%
               parted /dev/md0 mkpart primary ext4 20% 40%
